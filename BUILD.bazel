@@ -44,3 +44,8 @@ cc_binary(
     name = "triangle",
     srcs = ["triangle.cc"],
 )
+
+cc_binary(
+    name = "polygon",
+    srcs = ["polygon.cc"],
+)
