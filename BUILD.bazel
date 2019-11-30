@@ -34,3 +34,8 @@ cc_binary(
         ":hello",
     ],
 )
+
+cc_binary(
+    name = "point_vector",
+    srcs = ["point_vector.cc"],
+)
