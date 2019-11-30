@@ -14,10 +14,8 @@
 
 #include <string>
 
-#include "absl/strings/string_view.h"
-
 namespace hello {
 
-std::string Greet(absl::string_view person);
+std::string Greet();
 
 }  // namespace hello

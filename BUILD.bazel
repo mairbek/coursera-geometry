@@ -16,9 +16,6 @@ cc_library(
     name = "hello",
     srcs = ["hello.cc"],
     hdrs = ["hello.h"],
-    deps = [
-        "@absl//absl/strings",
-    ],
 )
 
 cc_test(
