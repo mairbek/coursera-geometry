@@ -54,3 +54,9 @@ cc_binary(
     name = "convex",
     srcs = ["convex.cc"],
 )
+
+cc_binary(
+    name = "binary_search",
+    srcs = ["binary_search.cc"],
+)
+
