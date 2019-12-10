@@ -60,3 +60,9 @@ cc_binary(
     srcs = ["binary_search.cc"],
 )
 
+cc_binary(
+    name = "rotated_binary_search",
+    srcs = ["rotated_binary_search.cc"],
+)
+
+

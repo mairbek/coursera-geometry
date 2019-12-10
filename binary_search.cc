@@ -2,8 +2,7 @@
 #include <iostream>
 namespace {
   class Solution {
-  public:
-    int search(std::vector<int>& nums, int target) {
+  public: int search(std::vector<int>& nums, int target) {
       int l = 0, r = nums.size() - 1;
 
       while (l <= r) {
@@ -23,8 +22,6 @@ namespace {
 }
 
 int main(int argc, const char** argv) {
-  std::cout << "Whatever bro" << std::endl;
-
   Solution s;
 
   std::vector<int> nums;
