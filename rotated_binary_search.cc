@@ -8,7 +8,6 @@ namespace {
       int l = 0, r = nums.size() - 1;
       while (l <= r) {
         int m = (l + r) / 2;
-        std::cout << l << " " << m << " " << r << std::endl;
         if (nums[m] == target) {
           return m;
         }
@@ -27,7 +26,8 @@ namespace {
           }
         }
       }
-      return -1;
+      std::cout << l << " " << r << std::endl;
+      return -r;
     }
   };
 }
@@ -45,6 +45,12 @@ int main(int argc, const char** argv) {
 
   nums = {5, 1, 3};
   std::cout << s.search(nums, 5) << std::endl;
+
+  nums = {5, 1, 3};
+  std::cout << s.search(nums, 6) << std::endl;
+
+  nums = {5, 1, 3};
+  std::cout << s.search(nums, 2) << std::endl;
 
 
   return 0;
