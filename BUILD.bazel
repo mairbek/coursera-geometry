@@ -71,3 +71,13 @@ cc_binary(
     name = "check_convex",
     srcs = ["check_convex.cc"],
 )
+
+cc_binary(
+    name = "convex_hull",
+    srcs = ["convex_hull.cc"],
+)
+
+cc_binary(
+    name = "tangents",
+    srcs = ["tangents.cc"],
+)
