@@ -82,8 +82,20 @@ cc_binary(
     srcs = ["tangents.cc"],
 )
 
+# lesson 3
+
 cc_binary(
     name = "line_intersect",
     srcs = ["line_intersect.cc"],
+)
+
+cc_binary(
+    name = "polygon_intersection",
+    srcs = ["polygon_intersection.cc"],
+)
+
+cc_binary(
+    name = "hor_vert",
+    srcs = ["hor_vert.cc"],
 )
 
