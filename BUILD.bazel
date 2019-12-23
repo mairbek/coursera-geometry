@@ -81,3 +81,9 @@ cc_binary(
     name = "tangents",
     srcs = ["tangents.cc"],
 )
+
+cc_binary(
+    name = "line_intersect",
+    srcs = ["line_intersect.cc"],
+)
+
