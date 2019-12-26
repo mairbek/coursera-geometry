@@ -99,3 +99,8 @@ cc_binary(
     srcs = ["hor_vert.cc"],
 )
 
+cc_binary(
+    name = "skip_list",
+    srcs = ["skip_list.cc"],
+)
+
