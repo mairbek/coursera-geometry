@@ -16,3 +16,9 @@ To run the tests
 ```bash
 bazel test //:hello_test
 ```
+
+To run asan
+
+```bash
+bazel run -c dbg --config=asan //:skip_list
+```
