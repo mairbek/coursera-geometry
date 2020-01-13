@@ -104,11 +104,14 @@ class SkipList {
     }
     bool rm = update[0]->get_count(0) == 1;
     for (int i = 0; i <= level_; i++) {
-      int count = update[i]->get_count(i);
       if (rm && update[i]->forward(i) == nxt) {
-        update[i]->set_forward(i, nxt->forward(i), count);
+        int count = update[i]->get_count(i);
+        int nxt_count = nxt->get_count(i);
+        update[i]->set_forward(i, nxt->forward(i), count + nxt_count - 1);
       } else {
-        update[i]->dec_count(i);
+        if (update[i]->forward(i) != nullptr) {
+          update[i]->dec_count(i);
+        }
       }
     }
     if (rm) {
@@ -162,21 +165,38 @@ class SkipList {
       w += widths[i];
     }
     for (int i = new_level + 1; i <= level_; i++) {
-      update[i]->inc_count(i);
+      if (update[i]->forward(i) != nullptr) {
+        update[i]->inc_count(i);
+      }
     }
     size_++;
   }
 
-  int index_of(int value) {
+  int count_range(int lower, int upper) {
+    int lo_idx = index_of(lower, false);
+    int up_idx = index_of(upper, true);
+    if (lo_idx < 0) {
+      lo_idx *= -1;
+    }
+    if (lo_idx > size_) {
+      return 0;
+    }
+    if (up_idx < 0) {
+      up_idx *= -1;
+    }
+    up_idx = std::min(up_idx, size_);
+    return up_idx - lo_idx;
+  }
+
+  int index_of(int value, bool upper) {
     Node* pp = head_;
     int k = 0;
     int index = 0;
     for (int i = level_; i >= 0; i--) {
       Node* ptr = pp;
       while (ptr != nullptr && (ptr->value() <= value || ptr == head_)) {
-        // std::cout << "[contains check] level " << i << " [" << k << "] " << ptr->value() << " count " << ptr->get_count(i) << std::endl;
         if (ptr->value() == value) {
-          return index;
+          return upper ? index : index - pp->get_count(0);
         }
         pp = ptr;
         index += ptr->get_count(i);
@@ -187,7 +207,7 @@ class SkipList {
     }
     bool result = pp != nullptr && pp->value() == value;
     if (result) {
-      return index;
+      return upper ? index : index - pp->get_count(0);
     }
     return -index;
   }
@@ -216,37 +236,67 @@ int main(int argc, const char** argv) {
   std::srand(1112345545);
   std::cout << "Hello skippy" << std::endl;
 
-  SkipList sk;
-
   /*
-  for (int i = 1; i <= 5; i++) {
-    sk.insert(-i);
-    sk.insert(i);
-  }
-  */
-  for (int i = 0; i < 10; i++) {
-    sk.remove(0);
-    sk.insert(0);
-  }
-  for (int i = 1; i <= 1000; i++) {
-    sk.insert(i);
-    sk.insert(-i);
-  }
-  for (int i = 0; i < 10; i++) {
-    sk.remove(-i);
-  }
-  /*
-  for (int i = 1; i <= 4; i++) {
-    sk.insert(-i);
-    sk.insert(i);
-    }*/
   {
-    std::cout << " index of " << -3 << " " << sk.index_of(-3) << std::endl;
-    std::cout << " index of " << 3 << " " << sk.index_of(3) << std::endl;
-    std::cout << " index of " << 4 << " " << sk.index_of(4) << std::endl;
-    std::cout << " index of " << 5 << " " << sk.index_of(5) << std::endl;
-    std::cout << " index of " << -500 << " " << sk.index_of(-500) << std::endl;
-    std::cout << " index of " << 1001 << " " << sk.index_of(1001) << std::endl;
+    SkipList sk;
+
+    for (int i = 0; i < 10; i++) {
+      sk.insert(3);
+    }
+    for (int i = 2; i <= 4; i++) {
+      sk.insert(i);
+    }
+    sk.insert(10);
+    std::cout << " Test 1" << std::endl;
+    sk.print_nodes();
+    std::cout << "   count 2, 3 = " << sk.count_range(2, 3) << std::endl;
+    std::cout << "   count 3, 3 = " << sk.count_range(3, 3) << std::endl;
+    std::cout << "   count -1, 11 = " << sk.count_range(-1, 11) << std::endl;
+  }
+
+  {
+    SkipList sk;
+    std::cout << " Test 2" << std::endl;
+    sk.insert(10);
+    sk.remove(10);
+    sk.print_nodes();
+    std::cout << "   count 2, 3 = " << sk.count_range(2, 3) << std::endl;
+  }
+*/
+  {
+    SkipList sk;
+    std::cout << " Test 3" << std::endl;
+    for (int i = 0; i < 6; i++) {
+      sk.insert(i);
+    }
+    for (int i = 0; i < 4; i++) {
+      sk.insert(i);
+    }
+    sk.remove(5);
+    sk.print_nodes();
+    std::cout << " index of -1 " << sk.index_of(-1, false) << std::endl;
+    std::cout << " index of -1 " << sk.index_of(-1, true) << std::endl;
+    std::cout << " count -1, -1 = " << sk.count_range(-1, -1) << std::endl;
+
+    std::cout << " index of 0 " << sk.index_of(0, false) << std::endl;
+    std::cout << " index of 0 " << sk.index_of(0, true) << std::endl;
+    std::cout << " count 0, 0 = " << sk.count_range(0, 0) << std::endl;
+
+    std::cout << " index of 4 " << sk.index_of(4, false) << std::endl;
+    std::cout << " index of 4 " << sk.index_of(4, true) << std::endl;
+    std::cout << " count 4, 4 = " << sk.count_range(4, 4) << std::endl;
+
+    std::cout << " index of 5 " << sk.index_of(5, false) << std::endl;
+    std::cout << " index of 5 " << sk.index_of(5, true) << std::endl;
+    std::cout << " count 5, 5 = " << sk.count_range(5, 5) << std::endl;
+
+/*
+    std::cout << "   count 1, 10 = " << sk.count_range(1, 10) << std::endl;
+    std::cout << "   count 1, 100 = " << sk.count_range(1, 100) << std::endl;
+    std::cout << "   count 100, 100 = " << sk.count_range(100, 100) << std::endl;
+    std::cout << "   count 101, 100 = " << sk.count_range(101, 100) << std::endl;
+    std::cout << "   count 1000, 1000 = " << sk.count_range(1000, 1000) << std::endl;
+*/
   }
   /*
   {
