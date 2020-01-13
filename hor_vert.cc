@@ -110,11 +110,14 @@ class SkipList {
     }
     bool rm = update[0]->get_count(0) == 1;
     for (int i = 0; i <= level_; i++) {
-      int count = update[i]->get_count(i);
       if (rm && update[i]->forward(i) == nxt) {
-        update[i]->set_forward(i, nxt->forward(i), count);
+        int count = update[i]->get_count(i);
+        int nxt_count = nxt->get_count(i);
+        update[i]->set_forward(i, nxt->forward(i), count + nxt_count - 1);
       } else {
-        update[i]->dec_count(i);
+        if (update[i]->forward(i) != nullptr) {
+          update[i]->dec_count(i);
+        }
       }
     }
     if (rm) {
@@ -127,7 +130,6 @@ class SkipList {
   // http://code.activestate.com/recipes/576930/
   void insert(int value) {
     int new_level = rand_geometric(size_);
-    // std::cout << "adjust level from " << level_ << " to " << new_level << std::endl;
     if (new_level > level_) {
       auto new_head = new Node(-1234, new_level);
       for (int i = 0; i <= level_; i++) {
@@ -168,21 +170,38 @@ class SkipList {
       w += widths[i];
     }
     for (int i = new_level + 1; i <= level_; i++) {
-      update[i]->inc_count(i);
+      if (update[i]->forward(i) != nullptr) {
+        update[i]->inc_count(i);
+      }
     }
     size_++;
   }
 
-  int index_of(int value) {
+  int count_range(int lower, int upper) {
+    int lo_idx = index_of(lower, false);
+    int up_idx = index_of(upper, true);
+    if (lo_idx < 0) {
+      lo_idx *= -1;
+    }
+    if (lo_idx > size_) {
+      return 0;
+    }
+    if (up_idx < 0) {
+      up_idx *= -1;
+    }
+    up_idx = std::min(up_idx, size_);
+    return up_idx - lo_idx;
+  }
+
+  int index_of(int value, bool upper) {
     Node* pp = head_;
     int k = 0;
     int index = 0;
     for (int i = level_; i >= 0; i--) {
       Node* ptr = pp;
       while (ptr != nullptr && (ptr->value() <= value || ptr == head_)) {
-        // std::cout << "[contains check] level " << i << " [" << k << "] " << ptr->value() << " count " << ptr->get_count(i) << std::endl;
         if (ptr->value() == value) {
-          return index;
+          return upper ? index : index - pp->get_count(0);
         }
         pp = ptr;
         index += ptr->get_count(i);
@@ -193,10 +212,11 @@ class SkipList {
     }
     bool result = pp != nullptr && pp->value() == value;
     if (result) {
-      return index;
+      return upper ? index : index - pp->get_count(0);
     }
-    return index;
+    return -index;
   }
+
 
   void print_nodes() {
     for (int i = level_; i >= 0; i--) {
@@ -215,6 +235,7 @@ class SkipList {
   int size_;
   Node* head_;
 };
+
 } // namespace
 
 int main(int argc, const char** argv) {
@@ -264,25 +285,15 @@ int main(int argc, const char** argv) {
     }
   }
 
-  bool debug = false;
-
-  SkipList binary;
+  SkipList sk;
   int count = 0;
   for (const auto& e : events) {
     if (e.type == 0) {
-      // std::cout << "1" << std::endl;
-      binary.insert(e.y1);
+      sk.insert(e.y1);
     } else if (e.type == 1) {
-      int idx1 = binary.index_of(e.y1);
-      int idx2 = binary.index_of(e.y2);
-      int k = (idx2 - idx1);
-      binary.print_nodes();
-      std::cout << "++ " << e.y1 << " " << e.y2 << " == " << k << std::endl;
-      // int k = binary.distance(y1, y2);
-      count += k;
+      count += sk.count_range(e.y1, e.y2);
     } else {
-      // std::cout << "erase " << e.y1 << std::endl;
-      binary.remove(e.y1);
+      sk.remove(e.y1);
     }
   }
 
