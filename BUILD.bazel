@@ -104,3 +104,8 @@ cc_binary(
     srcs = ["skip_list.cc"],
 )
 
+cc_binary(
+    name = "segments",
+    srcs = ["segments.cc"],
+)
+
