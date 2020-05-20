@@ -137,6 +137,7 @@ struct Event {
   float y;
   int type; // 0 intersection, 1 upper, 2 lower
   Segment* seg;
+  Segment* second;
 };
 
 struct Status {
@@ -202,6 +203,17 @@ class Solver {
     events_.insert(right);
   }
 
+  void print_statuses() {
+    if (debug_) {
+      std::cout << "!!!!!" << std::endl;
+      for (auto& st : statuses_) {
+        std::cout << " [" << st.seg->first.first << " " << st.seg->first.second << "] "
+                  << " [" << st.seg->second.first << " " << st.seg->second.second << "] "<< std::endl;
+      }
+    }
+
+  }
+
   void solve() {
     while (events_.size() > 0) {
       auto it = events_.begin();
@@ -218,6 +230,8 @@ class Solver {
           std::cout << " [++] inserting " << std::endl;
         }
 
+        print_statuses();
+
         Status st;
         st.seg = it->seg;
         st.y = st.seg->y;
@@ -226,6 +240,7 @@ class Solver {
         auto p = statuses_.insert(st);
 
         StatusSet::iterator inserted_it = p.first;
+        print_statuses();
         check_up_xx(inserted_it, it->x);
         check_bottom_xx(inserted_it, it->x);
 
@@ -246,11 +261,14 @@ class Solver {
           std::cout << " xxx bullshit " << std::endl;
         }
 
-        /*
-        std::cout << "before swap" << std::endl;
-        print_statuses();
-        */
-        auto nxt = std::next(find_it);
+        Status st_nxt;
+        st_nxt.seg = it->second;
+        st_nxt.y = st_nxt.seg->y;
+        st_nxt.slope = st_nxt.seg->slope;
+        auto nxt = statuses_.find(st_nxt);
+        if (find_it == statuses_.end()) {
+          std::cout << " nxt bullshit " << std::endl;
+        }
         results_.emplace_back(std::make_pair(find_it->seg, nxt->seg));
 
         Segment* top = find_it->seg;
@@ -262,6 +280,9 @@ class Solver {
 
         top->y = it->y;
         bottom->y = it->y;
+
+        auto ppp = std::make_pair(it->x, it->y);
+        history_.insert(ppp);
 
         // swap
 
@@ -283,10 +304,6 @@ class Solver {
           auto inserted_it = p.first;
           check_bottom_xx(inserted_it, it->x);
         }
-        /*
-        std::cout << "after swap" << std::endl;
-        print_statuses();
-        */
       }
 
       if (it->type == 2) {
@@ -312,16 +329,6 @@ class Solver {
     }
   }
 
-  void print_statuses() {
-
-    std::cout << "!!!!!" << std::endl;
-    for (auto& st : statuses_) {
-      std::cout << " [" << st.seg->first.first << " " << st.seg->first.second << "] "
-                << " [" << st.seg->second.first << " " << st.seg->second.second << "] "<< std::endl;
-    }
-
-  }
-
   void check_up_xx(StatusSet::iterator it, float xline) {
     if (debug_) {
       std::cout << " [xx++] checking up intersection" << std::endl;
@@ -329,6 +336,12 @@ class Solver {
     if (it == statuses_.begin()) {
       if (debug_) {
         std::cout << " [xx++] first element skipping " << std::endl;
+      }
+      return;
+    }
+    if (it == statuses_.end()) {
+      if (debug_) {
+        std::cout << " [xx++] last element skipping " << std::endl;
       }
       return;
     }
@@ -345,7 +358,10 @@ class Solver {
       if (debug_) {
         std::cout << " [xx++] intersection behind" << std::endl;
       }
-      return;
+      auto ppp = std::make_pair(xpx, xpy);
+      if (history_.count(ppp) > 0) {
+        return;
+      }
     }
     if (debug_) {
       std::cout << " [xx++] inserting intersection "
@@ -359,6 +375,7 @@ class Solver {
     xevent.x = xpx;
     xevent.y = xpy;
     xevent.seg = prev->seg;
+    xevent.second = it->seg;
     xevent.type = 0;
     events_.insert(xevent);
   }
@@ -366,6 +383,9 @@ class Solver {
   void check_bottom_xx(StatusSet::iterator it, int xline) {
     if (debug_) {
       std::cout << " [xx++] checking bottom intersection" << std::endl;
+    }
+    if (statuses_.size() <= 1) {
+      return;
     }
     auto next = std::next(it);
     if (next == statuses_.end()) {
@@ -386,7 +406,10 @@ class Solver {
       if (debug_) {
         std::cout << " [xx++] intersection behind" << std::endl;
       }
-      return;
+      auto ppp = std::make_pair(xpx, xpy);
+      if (history_.count(ppp) > 0) {
+        return;
+      }
     }
     if (debug_) {
       std::cout << " [xx++] inserting intersection "
@@ -400,6 +423,7 @@ class Solver {
     xevent.x = xpx;
     xevent.y = xpy;
     xevent.seg = it->seg;
+    xevent.second = next->seg;
     xevent.type = 0;
     events_.insert(xevent);
   }
@@ -420,6 +444,7 @@ class Solver {
   std::set<Event, bool(*) (const Event& a, const Event& b)> events_;
   StatusSet statuses_;
   std::vector<std::pair<Segment*, Segment*>> results_;
+  std::set<std::pair<float, float>> history_;
   bool debug_;
 };
 

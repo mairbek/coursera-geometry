@@ -109,3 +109,8 @@ cc_binary(
     srcs = ["segments.cc"],
 )
 
+cc_binary(
+    name = "segments_sq",
+    srcs = ["segments_sq.cc"],
+)
+
